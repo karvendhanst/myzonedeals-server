@@ -10,10 +10,16 @@ export const register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
 
-    const existingUser = await Dealer.findOne({ email });
+    const existingUser = await Dealer.findOne({ $or: [{ email }, { phone }] });
 
-    if (existingUser)
-      return res.status(400).json({ message: "Email already registered" });
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+      if (existingUser.phone === phone) {
+        return res.status(400).json({ message: "Phone number already registered" });
+      }
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
