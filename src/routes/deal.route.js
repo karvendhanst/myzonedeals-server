@@ -7,6 +7,7 @@ import {
   getDealById,
   updateDeal,
   deleteDeal,
+  getAllDealsWithLocation,
 } from '../controllers/deals.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 
@@ -41,6 +42,10 @@ dealRouter
   .route('/')
   .get(getDeals);
 
+  dealRouter
+  .route('/map')
+  .get(getAllDealsWithLocation);
+
 dealRouter
   .route('/create')
   .post(protect,  upload.array('images', 10), handleMulterError, createDeal);
@@ -50,6 +55,7 @@ dealRouter
   .get(getDealById)
   .patch(protect, updateDeal)
   .delete(protect, deleteDeal);
+
 
 export default dealRouter;
 

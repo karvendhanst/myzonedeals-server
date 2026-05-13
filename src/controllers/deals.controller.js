@@ -27,10 +27,8 @@ export const createDeal = asyncHandler(async (req, res) => {
     isActive,
   } = req.body;
 
-  /* ── basic presence check (Mongoose will validate types) ── */
   if (!shopId) return sendError(res, 'shopId is required');
 
-  /* ── upload images to Cloudinary (if any) ── */
   let images = [];
   if (req.files && req.files.length > 0) {
     if (req.files.length > 10)
@@ -68,6 +66,21 @@ export const createDeal = asyncHandler(async (req, res) => {
   return sendSuccess(res, { deal }, 201);
 });
 
+// GET /api/deals
+export const getAllDeals = asyncHandler(async (req, res) => {
+  const deals = await Deal.find({
+    isDeleted: false,
+  })
+    .populate("shopId")
+    .sort({ createdAt: -1 });
+
+  return sendSuccess(res, {
+    deals,
+    count: deals.length,
+  });
+});
+
+
 /* ══════════════════════════════════════════
    GET /api/deals?shopId=xxx
 ══════════════════════════════════════════ */
@@ -97,7 +110,7 @@ export const getDealById = asyncHandler(async (req, res) => {
 });
 
 /* ══════════════════════════════════════════
-   PATCH /api/deals/:id  (JSON only)
+   PATCH /api/deals/:id  
 ══════════════════════════════════════════ */
 export const updateDeal = asyncHandler(async (req, res) => {
   const allowed = ['title', 'description', 'price', 'dealPrice', 'validFrom', 'validTill', 'isActive'];
@@ -137,4 +150,75 @@ export const deleteDeal = asyncHandler(async (req, res) => {
   }
 
   return sendSuccess(res, { message: 'Deal deleted successfully' });
+});
+
+
+export const getAllDealsWithLocation = asyncHandler(async (req, res) => {
+  const deals = await Deal.aggregate([
+    /* ───── only non deleted deals ───── */
+    {
+      $match: {
+        isDeleted: false,
+      },
+    },
+
+    /* ───── join shops collection ───── */
+    {
+      $lookup: {
+        from: "shops", // mongodb collection name
+        localField: "shopId",
+        foreignField: "_id",
+        as: "shop",
+      },
+    },
+
+    /* ───── convert array to object ───── */
+    {
+      $unwind: "$shop",
+    },
+
+    /* ───── final response ───── */
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        description: 1,
+        images: 1,
+        price: 1,
+        dealPrice: 1,
+        discountPercent: 1,
+        validFrom: 1,
+        validTill: 1,
+        isActive: 1,
+        createdAt: 1,
+
+        /* shop details */
+        shopId: "$shop._id",
+        shopName: "$shop.name",
+        shopImage: "$shop.shopImage",
+        category: "$shop.category",
+        address: "$shop.address",
+
+        /* coordinates */
+        latitude: {
+          $arrayElemAt: ["$shop.location.coordinates", 1],
+        },
+        longitude: {
+          $arrayElemAt: ["$shop.location.coordinates", 0],
+        },
+      },
+    },
+
+    /* ───── latest deals first ───── */
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+  ]);
+
+  return sendSuccess(res, {
+    deals,
+    count: deals.length,
+  });
 });
