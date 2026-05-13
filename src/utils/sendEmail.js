@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import dns from "dns";
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -8,17 +9,13 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 10000,
 });
 
 transporter.verify((error, success) => {
   if (error) {
     console.log("SMTP ERROR:", error);
   } else {
-    console.log("SMTP Server Ready");
+    console.log("SMTP SERVER READY");
   }
 });
 
