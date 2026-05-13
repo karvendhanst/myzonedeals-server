@@ -1,7 +1,4 @@
-import { configDotenv } from "dotenv";
 import mongoose from "mongoose";
-
-configDotenv({ path: "./src/.env" });
 
 export const connectDB = async () => {
   console.log("Trying to connect to MongoDB...");
@@ -9,7 +6,7 @@ export const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
     console.error("MONGODB_URI is missing from .env file!");
-    return;
+    process.exit(1);
   }
 
   try {

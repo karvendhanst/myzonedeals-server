@@ -1,12 +1,11 @@
+import "dotenv/config";
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import { connectDB } from "./src/config/db.js";
 import authRouter from "./src/routes/auth.routes.js";
 import shopRouter from "./src/routes/shop.routes.js";
 import dealRouter from "./src/routes/deal.route.js";
 
-dotenv.config();
 
 const app = express();
 

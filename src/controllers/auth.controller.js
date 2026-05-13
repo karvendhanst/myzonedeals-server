@@ -43,7 +43,8 @@ export const register = async (req, res) => {
       userId: user._id,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Register Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -71,7 +72,8 @@ export const verifyOtp = async (req, res) => {
 
     res.json({ message: "Email verified successfully", token });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Verify OTP Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -100,7 +102,8 @@ export const resendOtp = async (req, res) => {
 
     res.json({ message: "OTP resent successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Resend OTP Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -121,7 +124,8 @@ export const login = async (req, res) => {
 
     res.json({ message: "Login successful", token });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
