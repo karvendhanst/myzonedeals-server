@@ -9,8 +9,6 @@ import dealRouter from "./src/routes/deal.route.js";
 
 const app = express();
 
-app.use(express.json());
-
 connectDB();
 
 const allowedOrigins = [
@@ -20,17 +18,13 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    callback(new Error("Not allowed by CORS"));
-  },
+  origin: allowedOrigins,
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/api/health", (_, res) => {
   res.json({ msg: "app is running well !!!" });
