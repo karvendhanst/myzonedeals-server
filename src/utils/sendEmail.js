@@ -10,6 +10,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("SMTP ERROR:", error);
+  } else {
+    console.log("SMTP Server Ready");
+  }
+});
+
 export const sendEmail = async (to, subject, html) => {
   await transporter.sendMail({
     from: `"My Zone Deals" <${process.env.EMAIL_USER}>`,
