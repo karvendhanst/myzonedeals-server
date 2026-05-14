@@ -155,24 +155,21 @@ export const deleteDeal = asyncHandler(async (req, res) => {
 
 export const getAllDealsWithLocation = asyncHandler(async (req, res) => {
   const deals = await Deal.aggregate([
-    /* ───── only non deleted deals ───── */
     {
       $match: {
         isDeleted: false,
       },
     },
 
-    /* ───── join shops collection ───── */
     {
       $lookup: {
-        from: "shops", // mongodb collection name
+        from: "shops", 
         localField: "shopId",
         foreignField: "_id",
         as: "shop",
       },
     },
 
-    /* ───── convert array to object ───── */
     {
       $unwind: "$shop",
     },
