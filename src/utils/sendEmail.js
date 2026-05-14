@@ -75,38 +75,38 @@
 // };
 
 
+
 import nodemailer from "nodemailer";
+import dns from "dns";
+
+dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
-  port: 2525,
+  port: 587,
   secure: false,
 
   auth: {
     user: process.env.BREVO_EMAIL,
     pass: process.env.BREVO_PASS,
   },
-});
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.log("SMTP ERROR:", error);
-  } else {
-    console.log("SMTP SERVER READY");
-  }
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 export const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
-      from: `"My Zone Deals" <${process.env.BREVO_EMAIL}>`,
+      from: '"My Zone Deals" <myzonedealsapp@gmail.com>',
       to,
       subject,
+      text: "My Zone Deals",
       html,
     });
 
-    console.log("EMAIL SENT:", info.messageId);
   } catch (error) {
-    console.log("SEND EMAIL ERROR:", error);
+    console.log(error);
   }
 };
