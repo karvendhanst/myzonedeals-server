@@ -84,16 +84,20 @@ const transporter = nodemailer.createTransport({
   requireTLS: true,
 
   auth: {
-    user: process.env.BREVO_EMAIL,
-    pass: process.env.BREVO_PASS,
+    user: process.env.BREVO_SMTP_USER,
+    pass: process.env.BREVO_SMTP_PASS,
   },
+
+  connectionTimeout: 60000,
+  greetingTimeout: 60000,
+  socketTimeout: 60000,
 });
 
 transporter.verify((error) => {
   if (error) {
     console.log("SMTP ERROR:", error);
   } else {
-    console.log("SMTP SERVER READY");
+    console.log("SMTP READY");
   }
 });
 
@@ -106,7 +110,7 @@ export const sendEmail = async (to, subject, html) => {
       html,
     });
 
-    console.log("EMAIL SENT:", info);
+    console.log("MAIL SENT:", info.messageId);
 
   } catch (error) {
     console.log("MAIL ERROR:", error);
