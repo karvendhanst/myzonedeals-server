@@ -74,6 +74,7 @@
 //   }
 // };
 
+
 import nodemailer from "nodemailer";
 import dns from "dns";
 
@@ -88,13 +89,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.BREVO_EMAIL,
     pass: process.env.BREVO_PASS,
   },
-
-  connectionTimeout: 20000,
-  greetingTimeout: 20000,
-  socketTimeout: 20000,
 });
 
-transporter.verify((error, success) => {
+transporter.verify((error) => {
   if (error) {
     console.log("SMTP ERROR:", error);
   } else {
@@ -105,14 +102,13 @@ transporter.verify((error, success) => {
 export const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
-      from: `"My Zone Deals" <${process.env.BREVO_EMAIL}>`,
+      from: `"My Zone Deals" <${process.env.BREVO_SENDER}>`,
       to,
       subject,
-      text: "My Zone Deals",
       html,
     });
 
-    console.log("EMAIL SENT:", info.messageId);
+    console.log("EMAIL SENT:", info);
 
   } catch (error) {
     console.log("MAIL ERROR:", error);
