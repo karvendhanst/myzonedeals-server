@@ -78,14 +78,19 @@
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
+  host: "smtp.gmail.com",
   port: 587,
   secure: false,
   requireTLS: true,
+  logger: true,
+  debug: true,
 
   auth: {
-    user: process.env.BREVO_SMTP_USER,
-    pass: process.env.BREVO_SMTP_PASS,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+    tls: {
+    rejectUnauthorized: false,
   },
 
   connectionTimeout: 60000,
@@ -104,7 +109,7 @@ transporter.verify((error) => {
 export const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
-      from: `"My Zone Deals" <${process.env.BREVO_SENDER}>`,
+      from: `"My Zone Deals" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html,
