@@ -57,6 +57,21 @@ const dealSchema = new Schema(
       },
     },
 
+    dealType: {
+      type: String,
+      enum: ['discount', 'bogo', 'freebie'],
+      default: 'discount',
+    },
+
+    bogoDetails: {
+      buyQty: { type: Number, min: 1 },
+      getQty: { type: Number, min: 1 },
+    },
+
+    freebieDetails: {
+      itemName: { type: String, trim: true },
+    },
+
     price: {
       type: Number,
       required: [true, 'Original price is required'],
@@ -65,13 +80,15 @@ const dealSchema = new Schema(
 
     dealPrice: {
       type: Number,
-      required: [true, 'Deal price is required'],
       min: [0, 'Deal price cannot be negative'],
       validate: {
         validator(v) {
-          return v < this.price;
+          if (this.dealType === 'discount') {
+            return v != null && v < this.price;
+          }
+          return true;
         },
-        message: 'Deal price must be less than the original price',
+        message: 'Deal price is required and must be less than original price for discount offers',
       },
     },
 
@@ -118,8 +135,10 @@ const dealSchema = new Schema(
 
 /* ─── Pre-save hook: compute discountPercent & mark cover image ─── */
 dealSchema.pre('save', function () {
-  if (this.price && this.dealPrice) {
+  if (this.dealType === 'discount' && this.price && this.dealPrice) {
     this.discountPercent = Math.round(((this.price - this.dealPrice) / this.price) * 100);
+  } else {
+    this.discountPercent = 0;
   }
 
   if (this.images && this.images.length) {
