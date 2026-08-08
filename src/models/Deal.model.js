@@ -59,7 +59,7 @@ const dealSchema = new Schema(
 
     dealType: {
       type: String,
-      enum: ['discount', 'bogo', 'freebie'],
+      enum: ['discount', 'bogo', 'freebie', 'showcase'],
       default: 'discount',
     },
 

@@ -6,9 +6,9 @@ const dealerSchema = new mongoose.Schema(
 
     email: { type: String, required: true, unique: true },
 
-    phone: { type: String, required: true, unique: true },
+    phone: { type: String, unique: true, sparse: true },
 
-    password: { type: String, required: true },
+    password: { type: String },
 
     role: { type: String, default: "shop_owner" },
 
@@ -16,6 +16,9 @@ const dealerSchema = new mongoose.Schema(
 
     otp: { type: String },
     otpExpiry: { type: Date },
+
+    googleId: { type: String },
+    authProvider: { type: String, default: "local", enum: ["local", "google"] },
   },
   { timestamps: true }
 );

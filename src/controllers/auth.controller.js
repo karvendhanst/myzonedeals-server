@@ -1,5 +1,6 @@
 import otpGenerator from "otp-generator";
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import Dealer from "../models/Dealer.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import verifyEmailTemplate from "../templates/verifyEmailTemplate.js";
@@ -135,5 +136,48 @@ export const login = async (req, res) => {
   }
 };
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+export const googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
 
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId } = payload;
+
+    let user = await Dealer.findOne({ email });
+
+    if (!user) {
+      user = await Dealer.create({
+        name,
+        email,
+        googleId,
+        isVerified: true,
+        authProvider: "google"
+      });
+    } else {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authProvider = "google";
+        user.isVerified = true;
+        await user.save();
+      }
+    }
+
+    const token = generateToken(user);
+
+    res.json({ message: "Google login successful", token, user });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
