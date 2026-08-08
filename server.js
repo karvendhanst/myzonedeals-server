@@ -5,11 +5,15 @@ import { connectDB } from "./src/config/db.js";
 import authRouter from "./src/routes/auth.routes.js";
 import shopRouter from "./src/routes/shop.routes.js";
 import dealRouter from "./src/routes/deal.route.js";
+import { startExpiredDealsCron } from "./src/jobs/expiredDealsCron.js";
 
 
 const app = express();
 
 connectDB();
+
+// Start cron job to soft-delete expired deals
+startExpiredDealsCron();
 
 const allowedOrigins = [
   "http://localhost:3000",

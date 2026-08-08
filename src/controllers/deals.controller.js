@@ -184,6 +184,8 @@ export const getAllDealsWithLocation = asyncHandler(async (req, res) => {
     {
       $match: {
         isDeleted: false,
+        isActive: true,
+        validTill: { $gte: new Date() }, // exclude expired deals
       },
     },
 
