@@ -145,13 +145,15 @@ export const updateDeal = asyncHandler(async (req, res) => {
     if (req.body[key] !== undefined) updates[key] = req.body[key];
   });
 
-  const deal = await Deal.findOneAndUpdate(
-    { _id: req.params.id, isDeleted: false },
-    updates,
-    { new: true, runValidators: true }
-  );
-
+  const deal = await Deal.findOne({ _id: req.params.id, isDeleted: false });
   if (!deal) return sendError(res, 'Deal not found', 404);
+
+  Object.keys(updates).forEach((key) => {
+    deal[key] = updates[key];
+  });
+
+  await deal.save();
+
   return sendSuccess(res, { deal });
 });
 

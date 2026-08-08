@@ -10,6 +10,10 @@ const shopSchema = new mongoose.Schema(
       shopImage: {
     type: String,
   },
+    shopImagePublicId: {
+    type: String,
+    default: null,
+  },
     dealerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Dealer",

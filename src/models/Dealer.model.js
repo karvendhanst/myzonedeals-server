@@ -19,6 +19,9 @@ const dealerSchema = new mongoose.Schema(
 
     googleId: { type: String },
     authProvider: { type: String, default: "local", enum: ["local", "google"] },
+
+    profilePicture: { type: String, default: null },
+    profilePicturePublicId: { type: String, default: null },
   },
   { timestamps: true }
 );

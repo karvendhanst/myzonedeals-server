@@ -5,6 +5,7 @@ import { connectDB } from "./src/config/db.js";
 import authRouter from "./src/routes/auth.routes.js";
 import shopRouter from "./src/routes/shop.routes.js";
 import dealRouter from "./src/routes/deal.route.js";
+import dealerRouter from "./src/routes/dealer.routes.js";
 import { startExpiredDealsCron } from "./src/jobs/expiredDealsCron.js";
 
 
@@ -24,7 +25,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 }));
 
 app.use(express.json());
@@ -37,6 +38,7 @@ app.get("/api/health", (_, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/shop", shopRouter);
 app.use("/api/deals", dealRouter);
+app.use("/api/dealer", dealerRouter);
 
 const port = process.env.PORT || 5000;
 
