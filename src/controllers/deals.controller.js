@@ -1,5 +1,6 @@
 // controllers/dealController.js
 import Deal from '../models/Deal.model.js';
+import Shop from '../models/Shop.model.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../config/cloudinary.js'; // adapt to your uploader
 
 /* ─── helpers ─── */
@@ -29,6 +30,12 @@ export const createDeal = asyncHandler(async (req, res) => {
   } = req.body;
 
   if (!shopId) return sendError(res, 'shopId is required');
+
+  // ── SECURITY FIX: verify the authenticated user owns this shop ──
+  const shop = await Shop.findOne({ _id: shopId, dealerId: req.user._id });
+  if (!shop) {
+    return sendError(res, 'Shop not found or you do not own this shop', 403);
+  }
 
   // Parse nested objects that arrive as JSON strings via multipart FormData
   let bogoDetails;

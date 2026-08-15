@@ -1,4 +1,4 @@
-import Dealer from "../models/Dealer.model.js";
+import User from "../models/User.model.js";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 
 /* ─── helpers ─── */
@@ -7,16 +7,16 @@ const asyncHandler = (fn) => (req, res, next) =>
 
 /* ══════════════════════════════════════════
    GET /api/dealer/profile
-   Returns authenticated dealer's full profile
+   Returns authenticated user's full profile
 ══════════════════════════════════════════ */
 export const getProfile = asyncHandler(async (req, res) => {
-  const dealer = await Dealer.findById(req.user._id).select(
+  const user = await User.findById(req.user._id).select(
     "-password -otp -otpExpiry"
   );
-  if (!dealer) {
-    return res.status(404).json({ success: false, message: "Dealer not found" });
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
   }
-  res.status(200).json({ success: true, data: dealer });
+  res.status(200).json({ success: true, data: user });
 });
 
 /* ══════════════════════════════════════════
@@ -47,7 +47,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
   // Check for duplicate phone if updating phone
   if (updates.phone) {
-    const existing = await Dealer.findOne({
+    const existing = await User.findOne({
       phone: updates.phone,
       _id: { $ne: req.user._id },
     });
@@ -59,21 +59,21 @@ export const updateProfile = asyncHandler(async (req, res) => {
     }
   }
 
-  const dealer = await Dealer.findByIdAndUpdate(req.user._id, updates, {
+  const user = await User.findByIdAndUpdate(req.user._id, updates, {
     new: true,
     runValidators: true,
   }).select("-password -otp -otpExpiry");
 
-  if (!dealer) {
-    return res.status(404).json({ success: false, message: "Dealer not found" });
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  res.status(200).json({ success: true, data: dealer });
+  res.status(200).json({ success: true, data: user });
 });
 
 /* ══════════════════════════════════════════
    POST /api/dealer/profile/picture
-   Uploads/replaces dealer avatar on Cloudinary
+   Uploads/replaces user avatar on Cloudinary
 ══════════════════════════════════════════ */
 export const uploadProfilePicture = asyncHandler(async (req, res) => {
   if (!req.file) {
@@ -83,14 +83,14 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
     });
   }
 
-  const dealer = await Dealer.findById(req.user._id);
-  if (!dealer) {
-    return res.status(404).json({ success: false, message: "Dealer not found" });
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
   }
 
   // Delete old profile picture from Cloudinary if it exists
-  if (dealer.profilePicturePublicId) {
-    await deleteFromCloudinary(dealer.profilePicturePublicId).catch(() => {});
+  if (user.profilePicturePublicId) {
+    await deleteFromCloudinary(user.profilePicturePublicId).catch(() => {});
   }
 
   // Upload new image with face-crop transform
@@ -100,15 +100,15 @@ export const uploadProfilePicture = asyncHandler(async (req, res) => {
     transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
   });
 
-  dealer.profilePicture = result.secure_url;
-  dealer.profilePicturePublicId = result.public_id;
-  await dealer.save();
+  user.profilePicture = result.secure_url;
+  user.profilePicturePublicId = result.public_id;
+  await user.save();
 
   res.status(200).json({
     success: true,
     data: {
-      profilePicture: dealer.profilePicture,
-      profilePicturePublicId: dealer.profilePicturePublicId,
+      profilePicture: user.profilePicture,
+      profilePicturePublicId: user.profilePicturePublicId,
     },
   });
 });

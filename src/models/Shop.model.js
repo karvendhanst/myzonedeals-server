@@ -7,36 +7,35 @@ const shopSchema = new mongoose.Schema(
       required: [true, "Shop name is required"],
       trim: true,
     },
-      shopImage: {
-    type: String,
-  },
+
+    shopImage: {
+      type: String,
+    },
+
     shopImagePublicId: {
-    type: String,
-    default: null,
-  },
+      type: String,
+      default: null,
+    },
+
     dealerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Dealer",
+      ref: "User",
       required: [true, "Dealer ID is required"],
     },
+
+    /**
+     * category is now a free-text string (or optionally a ref to Category).
+     * The old hardcoded enum has been removed so existing Shop documents with
+     * enum values continue to read and write without validation errors.
+     *
+     * Recommended: use a Category slug (e.g. "grocery", "electronics").
+     */
     category: {
       type: String,
       required: [true, "Category is required"],
-      enum: [
-        "Grocery",
-        "Restaurant",
-        "Pharmacy",
-        "Electronics",
-        "Clothing",
-        "Bakery",
-        "Salon & Spa",
-        "Fitness",
-        "Books & Stationery",
-        "Jewellery",
-        "Hardware",
-        "Other",
-      ],
+      trim: true,
     },
+
     address: {
       street: {
         type: String,
@@ -64,6 +63,7 @@ const shopSchema = new mongoose.Schema(
         trim: true,
       },
     },
+
     location: {
       type: {
         type: String,
@@ -87,14 +87,23 @@ const shopSchema = new mongoose.Schema(
         },
       },
     },
+
     isVerified: {
       type: Boolean,
       default: false,
     },
-    // isFeatured: {
-    //   type: Boolean,
-    //   default: false,
-    // },
+
+    /**
+     * status lifecycle:
+     *  pending   → newly created, awaiting admin review
+     *  active    → verified and live
+     *  suspended → temporarily disabled by admin
+     */
+    status: {
+      type: String,
+      enum: ["pending", "active", "suspended"],
+      default: "pending",
+    },
   },
   {
     timestamps: true,
@@ -104,7 +113,7 @@ const shopSchema = new mongoose.Schema(
 shopSchema.index({ location: "2dsphere" });
 shopSchema.index({ dealerId: 1 });
 shopSchema.index({ category: 1 });
-shopSchema.index({ isVerified: 1, isFeatured: 1 });
+shopSchema.index({ isVerified: 1, status: 1 });
 
 const Shop = mongoose.model("Shop", shopSchema);
 

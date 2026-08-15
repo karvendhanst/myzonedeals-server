@@ -1,7 +1,7 @@
 import otpGenerator from "otp-generator";
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
-import Dealer from "../models/Dealer.model.js";
+import User from "../models/User.model.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import verifyEmailTemplate from "../templates/verifyEmailTemplate.js";
 import { generateToken } from "../utils/generateToken.js";
@@ -9,9 +9,9 @@ import { generateToken } from "../utils/generateToken.js";
 
 export const register = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, role } = req.body;
 
-    const existingUser = await Dealer.findOne({ $or: [{ email }, { phone }] });
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
 
     if (existingUser) {
       if (existingUser.email === email) {
@@ -30,11 +30,15 @@ export const register = async (req, res) => {
       specialChars: false,
     });
 
-    const user = await Dealer.create({
+    // Accept 'user' or 'dealer' from the client; never accept 'admin' via registration.
+    const safeRole = role === "dealer" ? "dealer" : "user";
+
+    const user = await User.create({
       name,
       email,
       phone,
       password: hashedPassword,
+      role: safeRole,
       otp,
       otpExpiry: Date.now() + 5 * 60 * 1000,
     });
@@ -60,7 +64,7 @@ export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    const user = await Dealer.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.otp !== otp)
@@ -74,7 +78,6 @@ export const verifyOtp = async (req, res) => {
     user.otpExpiry = null;
     await user.save();
 
-    // Generate JWT
     const token = generateToken(user);
 
     res.json({ message: "Email verified successfully", token });
@@ -88,7 +91,7 @@ export const resendOtp = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const user = await Dealer.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const otp = otpGenerator.generate(6, {
@@ -118,7 +121,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await Dealer.findOne({ email });
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (!user.isVerified)
@@ -141,7 +144,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 export const googleLogin = async (req, res) => {
   try {
     const { credential } = req.body;
-    
+
     if (!credential) {
       return res.status(400).json({ message: "Google credential is required" });
     }
@@ -154,15 +157,16 @@ export const googleLogin = async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name, sub: googleId } = payload;
 
-    let user = await Dealer.findOne({ email });
+    let user = await User.findOne({ email });
 
     if (!user) {
-      user = await Dealer.create({
+      user = await User.create({
         name,
         email,
         googleId,
         isVerified: true,
-        authProvider: "google"
+        authProvider: "google",
+        role: "user",
       });
     } else {
       if (!user.googleId) {
