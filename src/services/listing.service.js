@@ -377,6 +377,15 @@ export async function getMapListings(query) {
       },
       { $unwind: { path: "$shopInfo", preserveNullAndEmptyArrays: true } },
       {
+        $lookup: {
+          from: "users",
+          localField: "owner.userId",
+          foreignField: "_id",
+          as: "ownerInfo",
+        },
+      },
+      { $unwind: { path: "$ownerInfo", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           _id: 1,
           listingType: 1,
@@ -387,6 +396,8 @@ export async function getMapListings(query) {
           metadata: 1,
           "owner.type": 1,
           "owner.userId": 1,
+          ownerName: "$ownerInfo.name",
+          profilePicture: "$ownerInfo.profilePicture",
           "source.type": 1,
           shopId: { $toString: "$source.shopId" },
           shopName: "$shopInfo.name",
@@ -410,6 +421,7 @@ export async function getMapListings(query) {
   // No geo — return recent listings
   const listings = await Listing.find(matchFilter)
     .populate("category", "name slug icon")
+    .populate("owner.userId", "name profilePicture")
     .sort({ createdAt: -1 })
     .limit(500);
 
